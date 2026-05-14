@@ -9,10 +9,13 @@ import os
 from langchain_openai import ChatOpenAI
 
 
-def get_llm() -> ChatOpenAI:
+def get_llm(temperature: float = 0.3) -> ChatOpenAI:
     """Return a ChatOpenAI client pointed at OpenRouter."""
     return ChatOpenAI(
         model=os.getenv("OPENROUTER_MODEL", "anthropic/claude-sonnet-4-5"),
         openai_api_key=os.getenv("OPENROUTER_API_KEY"),
         openai_api_base="https://openrouter.ai/api/v1",
+        temperature=temperature,
+        # Keep a conservative default to avoid OpenRouter 402 when credit is low.
+        max_tokens=int(os.getenv("OPENROUTER_MAX_TOKENS", "512")),
     )

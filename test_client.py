@@ -64,27 +64,44 @@ async def main() -> None:
         response = await client.send_message(request)
 
         # Parse response
+        def _collect_text_from_parts(parts) -> str:
+            out = ""
+            for part in parts or []:
+                p = part.root if hasattr(part, "root") else part
+                if hasattr(p, "text") and p.text:
+                    out += p.text
+            return out
+
         result_text = ""
+        task_state = None
         if hasattr(response, "root"):
             root = response.root
             if hasattr(root, "result"):
                 result = root.result
+                if hasattr(result, "status") and result.status:
+                    task_state = getattr(result.status, "state", None)
+                    if hasattr(result.status, "message") and result.status.message:
+                        status_msg = _collect_text_from_parts(result.status.message.parts)
+                        if status_msg:
+                            result_text += status_msg
                 # Task with artifacts
                 if hasattr(result, "artifacts") and result.artifacts:
                     for artifact in result.artifacts:
-                        for part in artifact.parts:
-                            p = part.root if hasattr(part, "root") else part
-                            if hasattr(p, "text"):
-                                result_text += p.text
+                        result_text += _collect_text_from_parts(artifact.parts)
                 # Message with parts
                 elif hasattr(result, "parts") and result.parts:
-                    for part in result.parts:
-                        p = part.root if hasattr(part, "root") else part
-                        if hasattr(p, "text"):
-                            result_text += p.text
+                    result_text += _collect_text_from_parts(result.parts)
+                # Fallback: read latest message in history
+                elif hasattr(result, "history") and result.history:
+                    for message in reversed(result.history):
+                        history_text = _collect_text_from_parts(getattr(message, "parts", []))
+                        if history_text:
+                            result_text += history_text
+                            break
 
         if result_text:
-            print("RESPONSE:")
+            title = "RESPONSE" if str(task_state) != "TaskState.failed" else "AGENT ERROR"
+            print(f"{title}:")
             print("=" * 60)
             print(result_text)
             print("=" * 60)

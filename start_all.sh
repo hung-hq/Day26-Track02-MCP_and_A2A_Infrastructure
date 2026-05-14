@@ -4,6 +4,9 @@ set -e
 # Start all Legal Multi-Agent System services
 # Registry must be first, then leaf agents, then orchestrators
 
+# Keep response budget conservative to reduce OpenRouter 402 errors.
+export OPENROUTER_MAX_TOKENS="${OPENROUTER_MAX_TOKENS:-512}"
+
 echo "Starting Registry service on port 10000..."
 python -m registry &
 REGISTRY_PID=$!
@@ -34,6 +37,7 @@ echo "  Customer Agent:   http://localhost:10100"
 echo "  Law Agent:        http://localhost:10101"
 echo "  Tax Agent:        http://localhost:10102"
 echo "  Compliance Agent: http://localhost:10103"
+echo "  OPENROUTER_MAX_TOKENS: $OPENROUTER_MAX_TOKENS"
 echo ""
 echo "Run test_client.py to send a query:"
 echo "  python test_client.py"

@@ -19,7 +19,10 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from common.llm import get_llm
 
-QUESTION = "What are the legal consequences if a company breaches a non-disclosure agreement?"
+QUESTION = (
+    "Nếu một công ty vi phạm thỏa thuận bảo mật (NDA), "
+    "hậu quả pháp lý có thể là gì?"
+)
 
 
 async def main():
@@ -28,9 +31,9 @@ async def main():
     print("=" * 70)
     print()
     print("[How it works]")
-    print("  1. We send a system prompt + user question directly to the LLM")
-    print("  2. The LLM responds from its training data only")
-    print("  3. No tools, no retrieval, no external knowledge")
+    print("  1. Gửi SystemMessage + HumanMessage trực tiếp cho LLM")
+    print("  2. LLM trả lời chỉ từ dữ liệu huấn luyện")
+    print("  3. Không tools, không retrieval, không external memory")
     print()
     print(f"Question: {QUESTION}")
     print("-" * 70)
@@ -47,17 +50,17 @@ async def main():
         HumanMessage(content=QUESTION),
     ]
 
-    print("\n>>> Calling LLM directly (no tools, no RAG)...\n")
+    print("\n>>> Gọi LLM trực tiếp (không tools, không RAG)...\n")
     response = await llm.ainvoke(messages)
     print(response.content)
 
     print()
     print("-" * 70)
     print("[Limitations of Stage 1]")
-    print("  - Stateless: no conversation memory between calls")
-    print("  - No tools: cannot search databases or calculate damages")
-    print("  - Knowledge cutoff: only knows what was in training data")
-    print("  - No grounding: cannot cite specific statutes or current case law")
+    print("  - Stateless: không nhớ hội thoại giữa các lần gọi")
+    print("  - No tools: không thể tra cứu database hoặc tính toán")
+    print("  - Knowledge cutoff: chỉ biết dữ liệu trong training")
+    print("  - No grounding: không tự tra cứu luật/case law mới")
     print()
     print("Next: Stage 2 adds RAG and tools to ground responses in real data.")
     print("=" * 70)
